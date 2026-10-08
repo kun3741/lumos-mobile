@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Люмос</string>
+    <string name="tagline">Графіки відключень світла для обраної черги в одному місці.</string>
+    <string name="screens_title">Екрани застосунку</string>
+    <string name="screen_catalog">Каталог регіонів</string>
+    <string name="screen_details">Деталі графіка</string>
+    <string name="screen_settings">Налаштування черги та сповіщень</string>
+    <string name="data_title">Джерело даних</string>
+    <string name="data_description">Власний сервер Люмос: /api/regions та графіки обленерго для Івано-Франківщини, Львівщини й Волині.</string>
+    <string name="saved_title">На пристрої</string>
+    <string name="saved_description">Обраний регіон і черга зберігатимуться локально.</string>
+    <string name="prototype_badge">ПРОЄКТ · ЛАБОРАТОРНА 1</string>
+</resources>
