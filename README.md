@@ -8,6 +8,8 @@
 
 Перший екран Android знаходиться у корені репозиторію: відкрийте його як проєкт в Android Studio й запустіть модуль `app` на емуляторі або телефоні. Потрібні JDK 17 та Android SDK 36.
 
+Проєкт містить Gradle Wrapper 8.13. У IntelliJ IDEA встановіть плагіни Android та Android Design Tools, виберіть JDK 17 для Gradle JVM і синхронізуйте проєкт. Для перевірки збірки в Windows можна виконати `gradlew.bat :app:assembleDebug`; debug APK з'явиться в `app/build/outputs/apk/debug/`.
+
 Перший екран iOS знаходиться у `ios/`: відкрийте `ios/LumosMobile.xcodeproj` у Xcode на Mac і запустіть схему `LumosMobile` на симуляторі iPhone або телефоні. Проєкт написаний на SwiftUI.
 
 Каталог, деталі, робота з REST API та збереження вибору ще мають бути реалізовані в обох мобільних версіях. Тема потребує затвердження викладачем.

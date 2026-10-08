@@ -1,5 +1,7 @@
 # Android Studio / Gradle
 .gradle/
+.tools/
+jdk17.zip
 .kotlin/
 build/
 **/build/
