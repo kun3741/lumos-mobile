@@ -1,11 +1,19 @@
 <resources>
     <string name="app_name">Люмос</string>
     <string name="catalog_title">Оберіть свій регіон</string>
-    <string name="catalog_subtitle">Графіки планових відключень і сповіщення для вашої черги.</string>
+    <string name="catalog_subtitle">Фільтруйте регіони за доступністю графіків і оберіть потрібний.</string>
     <string name="available_badge">ГРАФІКИ ДОСТУПНІ</string>
+    <string name="planned_badge">У РОЗРОБЦІ</string>
+    <string name="filter_all">Усі</string>
+    <string name="filter_connected">Підключено</string>
+    <string name="filter_planned">У розробці</string>
+    <string name="filter_paused">Призупинено</string>
+    <string name="empty_title">Регіонів не знайдено</string>
+    <string name="empty_description">У цій категорії зараз немає регіонів. Оберіть інший варіант.</string>
     <string name="region_code">КОД</string>
     <string name="queues">6 ЧЕРГ</string>
     <string name="source">ДЖЕРЕЛО</string>
     <string name="power_company">Обленерго</string>
+    <string name="source_preparing">Готується</string>
     <string name="region_image_description">Ілюстрація регіону %1$s</string>
 </resources>

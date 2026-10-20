@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,18 +18,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ua.lumos.mobile.data.Region
+import ua.lumos.mobile.data.RegionAvailability
 import ua.lumos.mobile.data.regions
 
 private val Ink = Color(0xFF172033)
@@ -48,6 +56,18 @@ private val Night = Color(0xFF101827)
 private val Amber = Color(0xFFFFC857)
 private val ScreenBackground = Color(0xFFF3F5F8)
 private val MutedText = Color(0xFF697386)
+
+private enum class RegionFilter(
+    @StringRes val titleRes: Int,
+    val availability: RegionAvailability?
+) {
+    ALL(R.string.filter_all, null),
+    CONNECTED(R.string.filter_connected, RegionAvailability.CONNECTED),
+    PLANNED(R.string.filter_planned, RegionAvailability.PLANNED),
+    PAUSED(R.string.filter_paused, RegionAvailability.PAUSED)
+}
+
+private val regionFilters = RegionFilter.entries
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,6 +117,11 @@ private fun LumosApp() {
 
 @Composable
 private fun RegionCatalog(modifier: Modifier = Modifier) {
+    var selectedFilter by rememberSaveable { mutableStateOf(RegionFilter.ALL) }
+    val visibleRegions = regions.filter { region ->
+        selectedFilter.availability == null || region.availability == selectedFilter.availability
+    }
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
@@ -119,14 +144,78 @@ private fun RegionCatalog(modifier: Modifier = Modifier) {
             }
         }
 
-        items(items = regions, key = Region::id) { region ->
-            RegionCard(region)
+        item {
+            RegionFilterRow(
+                filters = regionFilters,
+                selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it }
+            )
+        }
+
+        if (visibleRegions.isEmpty()) {
+            item { EmptyRegionState() }
+        } else {
+            items(items = visibleRegions, key = Region::id) { region ->
+                RegionCard(region)
+            }
         }
     }
 }
 
 @Composable
+private fun RegionFilterRow(
+    filters: List<RegionFilter>,
+    selectedFilter: RegionFilter,
+    onFilterSelected: (RegionFilter) -> Unit
+) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(items = filters, key = RegionFilter::name) { filter ->
+            FilterChip(
+                selected = filter == selectedFilter,
+                onClick = { onFilterSelected(filter) },
+                label = { Text(stringResource(filter.titleRes)) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyRegionState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(24.dp))
+            .padding(horizontal = 24.dp, vertical = 36.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(54.dp)
+                .background(ScreenBackground, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("⌕", color = MutedText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        }
+        Text(
+            text = stringResource(R.string.empty_title),
+            color = Ink,
+            fontSize = 19.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = stringResource(R.string.empty_description),
+            color = MutedText,
+            fontSize = 14.sp,
+            lineHeight = 20.sp
+        )
+    }
+}
+
+@Composable
 private fun RegionCard(region: Region) {
+    val isConnected = region.availability == RegionAvailability.CONNECTED
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -144,12 +233,14 @@ private fun RegionCard(region: Region) {
                     contentScale = ContentScale.Crop
                 )
                 Text(
-                    text = stringResource(R.string.available_badge),
+                    text = stringResource(
+                        if (isConnected) R.string.available_badge else R.string.planned_badge
+                    ),
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(14.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(Amber)
+                        .background(if (isConnected) Amber else Color(0xFFD8E0EE))
                         .padding(horizontal = 12.dp, vertical = 7.dp),
                     color = Night,
                     fontSize = 11.sp,
@@ -183,7 +274,9 @@ private fun RegionCard(region: Region) {
                     )
                     Characteristic(
                         label = stringResource(R.string.source),
-                        value = stringResource(R.string.power_company),
+                        value = stringResource(
+                            if (isConnected) R.string.power_company else R.string.source_preparing
+                        ),
                         modifier = Modifier.weight(1.35f)
                     )
                 }
@@ -210,6 +303,9 @@ private fun regionImageRes(id: String): Int = when (id) {
     "if" -> R.drawable.region_if
     "lviv" -> R.drawable.region_lviv
     "volyn" -> R.drawable.region_volyn
+    "ternopil" -> R.drawable.region_ternopil
+    "rivne" -> R.drawable.region_rivne
+    "kyiv" -> R.drawable.region_kyiv
     else -> R.drawable.region_if
 }
 
