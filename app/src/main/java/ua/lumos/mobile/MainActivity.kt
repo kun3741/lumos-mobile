@@ -32,10 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,25 +43,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
-import ua.lumos.mobile.data.regions
 
 private val Ink = Color(0xFF172033)
 private val Night = Color(0xFF101827)
 private val Amber = Color(0xFFFFC857)
 private val ScreenBackground = Color(0xFFF3F5F8)
 private val MutedText = Color(0xFF697386)
-
-private enum class RegionFilter(
-    @StringRes val titleRes: Int,
-    val availability: RegionAvailability?
-) {
-    ALL(R.string.filter_all, null),
-    CONNECTED(R.string.filter_connected, RegionAvailability.CONNECTED),
-    PLANNED(R.string.filter_planned, RegionAvailability.PLANNED),
-    PAUSED(R.string.filter_paused, RegionAvailability.PAUSED)
-}
 
 private val regionFilters = RegionFilter.entries
 
@@ -76,9 +62,20 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Composable
+private fun LumosApp(viewModel: RegionCatalogViewModel = viewModel()) {
+    LumosScreen(
+        uiState = viewModel.uiState,
+        onFilterSelected = viewModel::onFilterSelected
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LumosApp() {
+private fun LumosScreen(
+    uiState: RegionCatalogUiState,
+    onFilterSelected: (RegionFilter) -> Unit
+) {
     MaterialTheme {
         Scaffold(
             containerColor = ScreenBackground,
@@ -107,6 +104,8 @@ private fun LumosApp() {
             }
         ) { innerPadding ->
             RegionCatalog(
+                uiState = uiState,
+                onFilterSelected = onFilterSelected,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -116,12 +115,11 @@ private fun LumosApp() {
 }
 
 @Composable
-private fun RegionCatalog(modifier: Modifier = Modifier) {
-    var selectedFilter by rememberSaveable { mutableStateOf(RegionFilter.ALL) }
-    val visibleRegions = regions.filter { region ->
-        selectedFilter.availability == null || region.availability == selectedFilter.availability
-    }
-
+private fun RegionCatalog(
+    uiState: RegionCatalogUiState,
+    onFilterSelected: (RegionFilter) -> Unit,
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
@@ -147,15 +145,15 @@ private fun RegionCatalog(modifier: Modifier = Modifier) {
         item {
             RegionFilterRow(
                 filters = regionFilters,
-                selectedFilter = selectedFilter,
-                onFilterSelected = { selectedFilter = it }
+                selectedFilter = uiState.selectedFilter,
+                onFilterSelected = onFilterSelected
             )
         }
 
-        if (visibleRegions.isEmpty()) {
+        if (uiState.visibleRegions.isEmpty()) {
             item { EmptyRegionState() }
         } else {
-            items(items = visibleRegions, key = Region::id) { region ->
+            items(items = uiState.visibleRegions, key = Region::id) { region ->
                 RegionCard(region)
             }
         }
@@ -173,10 +171,18 @@ private fun RegionFilterRow(
             FilterChip(
                 selected = filter == selectedFilter,
                 onClick = { onFilterSelected(filter) },
-                label = { Text(stringResource(filter.titleRes)) }
+                label = { Text(stringResource(filter.titleRes())) }
             )
         }
     }
+}
+
+@StringRes
+private fun RegionFilter.titleRes(): Int = when (this) {
+    RegionFilter.ALL -> R.string.filter_all
+    RegionFilter.CONNECTED -> R.string.filter_connected
+    RegionFilter.PLANNED -> R.string.filter_planned
+    RegionFilter.PAUSED -> R.string.filter_paused
 }
 
 @Composable
@@ -312,5 +318,8 @@ private fun regionImageRes(id: String): Int = when (id) {
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun LumosAppPreview() {
-    LumosApp()
+    LumosScreen(
+        uiState = RegionCatalogUiState(),
+        onFilterSelected = {}
+    )
 }
