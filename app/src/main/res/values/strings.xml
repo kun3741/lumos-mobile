@@ -16,4 +16,14 @@
     <string name="power_company">Обленерго</string>
     <string name="source_preparing">Готується</string>
     <string name="region_image_description">Ілюстрація регіону %1$s</string>
+    <string name="details_title">Деталі регіону</string>
+    <string name="back_description">Повернутися назад</string>
+    <string name="details_provider">Оператор графіка</string>
+    <string name="details_queues">Підтримувані черги</string>
+    <string name="details_update">Оновлення даних</string>
+    <string name="details_notes">Важливо знати</string>
+    <string name="details_image_url">Адреса зображення в API</string>
+    <string name="not_found_title">Регіон не знайдено</string>
+    <string name="not_found_description">Об’єкт із таким ідентифікатором відсутній або був видалений.</string>
+    <string name="back_to_catalog">Повернутися до каталогу</string>
 </resources>

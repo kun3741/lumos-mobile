@@ -7,6 +7,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,8 +45,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
+import ua.lumos.mobile.data.regions
 
 private val Ink = Color(0xFF172033)
 private val Night = Color(0xFF101827)
@@ -54,6 +61,9 @@ private val ScreenBackground = Color(0xFFF3F5F8)
 private val MutedText = Color(0xFF697386)
 
 private val regionFilters = RegionFilter.entries
+private const val CatalogRoute = "catalog"
+private const val RegionIdArgument = "regionId"
+private const val DetailsRoute = "details/{$RegionIdArgument}"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,18 +73,45 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LumosApp(viewModel: RegionCatalogViewModel = viewModel()) {
-    LumosScreen(
-        uiState = viewModel.uiState,
-        onFilterSelected = viewModel::onFilterSelected
-    )
+private fun LumosApp() {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = CatalogRoute
+    ) {
+        composable(CatalogRoute) {
+            val viewModel: RegionCatalogViewModel = viewModel()
+            RegionCatalogScreen(
+                uiState = viewModel.uiState,
+                onFilterSelected = viewModel::onFilterSelected,
+                onItemClick = { regionId ->
+                    navController.navigate("details/$regionId")
+                }
+            )
+        }
+        composable(
+            route = DetailsRoute,
+            arguments = listOf(
+                navArgument(RegionIdArgument) { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val regionId = backStackEntry.arguments?.getString(RegionIdArgument)
+            val region = regions.firstOrNull { it.id == regionId }
+            RegionDetailsScreen(
+                region = region,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LumosScreen(
+private fun RegionCatalogScreen(
     uiState: RegionCatalogUiState,
-    onFilterSelected: (RegionFilter) -> Unit
+    onFilterSelected: (RegionFilter) -> Unit,
+    onItemClick: (String) -> Unit
 ) {
     MaterialTheme {
         Scaffold(
@@ -106,6 +143,7 @@ private fun LumosScreen(
             RegionCatalog(
                 uiState = uiState,
                 onFilterSelected = onFilterSelected,
+                onItemClick = onItemClick,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
@@ -118,6 +156,7 @@ private fun LumosScreen(
 private fun RegionCatalog(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
+    onItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -154,7 +193,10 @@ private fun RegionCatalog(
             item { EmptyRegionState() }
         } else {
             items(items = uiState.visibleRegions, key = Region::id) { region ->
-                RegionCard(region)
+                RegionCard(
+                    region = region,
+                    onClick = { onItemClick(region.id) }
+                )
             }
         }
     }
@@ -219,11 +261,13 @@ private fun EmptyRegionState() {
 }
 
 @Composable
-private fun RegionCard(region: Region) {
+private fun RegionCard(region: Region, onClick: () -> Unit) {
     val isConnected = region.availability == RegionAvailability.CONNECTED
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
@@ -305,7 +349,7 @@ private fun Characteristic(label: String, value: String, modifier: Modifier = Mo
 }
 
 @DrawableRes
-private fun regionImageRes(id: String): Int = when (id) {
+internal fun regionImageRes(id: String): Int = when (id) {
     "if" -> R.drawable.region_if
     "lviv" -> R.drawable.region_lviv
     "volyn" -> R.drawable.region_volyn
@@ -318,8 +362,9 @@ private fun regionImageRes(id: String): Int = when (id) {
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun LumosAppPreview() {
-    LumosScreen(
+    RegionCatalogScreen(
         uiState = RegionCatalogUiState(),
-        onFilterSelected = {}
+        onFilterSelected = {},
+        onItemClick = {}
     )
 }
