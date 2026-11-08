@@ -26,4 +26,14 @@
     <string name="not_found_title">Регіон не знайдено</string>
     <string name="not_found_description">Об’єкт із таким ідентифікатором відсутній або був видалений.</string>
     <string name="back_to_catalog">Повернутися до каталогу</string>
+    <string name="settings_description">Відкрити налаштування</string>
+    <string name="settings_title">Налаштування</string>
+    <string name="settings_heading">Ваш каталог</string>
+    <string name="settings_subtitle">Зміна збережеться на пристрої та застосовуватиметься під час наступних запусків.</string>
+    <string name="sort_alphabetically_title">Сортувати за назвою</string>
+    <string name="sort_alphabetically_description">Розташувати всі регіони за абеткою замість порядку доступності.</string>
+    <string name="current_sort_alphabetical">Поточний порядок: за назвою</string>
+    <string name="current_sort_availability">Поточний порядок: за доступністю</string>
+    <string name="sort_status_alphabetical">Порядок: за назвою</string>
+    <string name="sort_status_availability">Порядок: за доступністю</string>
 </resources>

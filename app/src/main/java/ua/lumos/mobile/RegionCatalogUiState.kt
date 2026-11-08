@@ -13,10 +13,19 @@ enum class RegionFilter(val availability: RegionAvailability?) {
 
 data class RegionCatalogUiState(
     val selectedFilter: RegionFilter = RegionFilter.ALL,
-    val regions: List<Region> = regionCatalog
+    val regions: List<Region> = regionCatalog,
+    val sortAlphabetically: Boolean = false
 ) {
     val visibleRegions: List<Region>
-        get() = regions.filter { region ->
-            selectedFilter.availability == null || region.availability == selectedFilter.availability
+        get() {
+            val filteredRegions = regions.filter { region ->
+                selectedFilter.availability == null ||
+                    region.availability == selectedFilter.availability
+            }
+            return if (sortAlphabetically) {
+                filteredRegions.sortedBy(Region::name)
+            } else {
+                filteredRegions
+            }
         }
 }

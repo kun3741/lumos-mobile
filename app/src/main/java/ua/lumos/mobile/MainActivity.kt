@@ -27,12 +27,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +66,7 @@ private val MutedText = Color(0xFF697386)
 
 private val regionFilters = RegionFilter.entries
 private const val CatalogRoute = "catalog"
+private const val SettingsRoute = "settings"
 private const val RegionIdArgument = "regionId"
 private const val DetailsRoute = "details/{$RegionIdArgument}"
 
@@ -85,9 +90,21 @@ private fun LumosApp() {
             RegionCatalogScreen(
                 uiState = viewModel.uiState,
                 onFilterSelected = viewModel::onFilterSelected,
+                onSettingsClick = {
+                    navController.navigate(SettingsRoute)
+                },
                 onItemClick = { regionId ->
                     navController.navigate("details/$regionId")
                 }
+            )
+        }
+        composable(SettingsRoute) {
+            val viewModel: SettingsViewModel = viewModel()
+            val sortAlphabetically by viewModel.sortAlphabetically.collectAsState()
+            SettingsScreen(
+                sortAlphabetically = sortAlphabetically,
+                onSortAlphabeticallyChange = viewModel::onSortAlphabeticallyChange,
+                onBackClick = { navController.popBackStack() }
             )
         }
         composable(
@@ -111,6 +128,7 @@ private fun LumosApp() {
 private fun RegionCatalogScreen(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
+    onSettingsClick: () -> Unit,
     onItemClick: (String) -> Unit
 ) {
     MaterialTheme {
@@ -133,6 +151,15 @@ private fun RegionCatalogScreen(
                                 modifier = Modifier.padding(start = 10.dp),
                                 color = Color.White,
                                 fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_settings),
+                                contentDescription = stringResource(R.string.settings_description),
+                                tint = Color.White
                             )
                         }
                     },
@@ -177,6 +204,23 @@ private fun RegionCatalog(
                     color = MutedText,
                     fontSize = 15.sp,
                     lineHeight = 21.sp
+                )
+                Text(
+                    text = stringResource(
+                        if (uiState.sortAlphabetically) {
+                            R.string.sort_status_alphabetical
+                        } else {
+                            R.string.sort_status_availability
+                        }
+                    ),
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.White)
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                    color = MutedText,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -365,6 +409,7 @@ private fun LumosAppPreview() {
     RegionCatalogScreen(
         uiState = RegionCatalogUiState(),
         onFilterSelected = {},
+        onSettingsClick = {},
         onItemClick = {}
     )
 }
