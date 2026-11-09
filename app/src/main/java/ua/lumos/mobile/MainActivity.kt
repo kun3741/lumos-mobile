@@ -3,9 +3,7 @@ package ua.lumos.mobile
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -41,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +54,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
-import ua.lumos.mobile.data.regions
 
 private val Ink = Color(0xFF172033)
 private val Night = Color(0xFF101827)
@@ -78,7 +75,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LumosApp() {
+private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
     val navController = rememberNavController()
 
     NavHost(
@@ -86,10 +83,9 @@ private fun LumosApp() {
         startDestination = CatalogRoute
     ) {
         composable(CatalogRoute) {
-            val viewModel: RegionCatalogViewModel = viewModel()
             RegionCatalogScreen(
-                uiState = viewModel.uiState,
-                onFilterSelected = viewModel::onFilterSelected,
+                uiState = catalogViewModel.uiState,
+                onFilterSelected = catalogViewModel::onFilterSelected,
                 onSettingsClick = {
                     navController.navigate(SettingsRoute)
                 },
@@ -114,7 +110,7 @@ private fun LumosApp() {
             )
         ) { backStackEntry ->
             val regionId = backStackEntry.arguments?.getString(RegionIdArgument)
-            val region = regions.firstOrNull { it.id == regionId }
+            val region = catalogViewModel.uiState.regions.firstOrNull { it.id == regionId }
             RegionDetailsScreen(
                 region = region,
                 onBackClick = { navController.popBackStack() }
@@ -233,7 +229,11 @@ private fun RegionCatalog(
             )
         }
 
-        if (uiState.visibleRegions.isEmpty()) {
+        if (uiState.isLoading) {
+            item { LoadingRegionsState() }
+        }
+
+        if (!uiState.isLoading && uiState.visibleRegions.isEmpty()) {
             item { EmptyRegionState() }
         } else {
             items(items = uiState.visibleRegions, key = Region::id) { region ->
@@ -243,6 +243,24 @@ private fun RegionCatalog(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun LoadingRegionsState() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 28.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CircularProgressIndicator(color = Color(0xFFB7791F))
+        Text(
+            text = stringResource(R.string.loading_regions),
+            color = MutedText,
+            fontSize = 14.sp
+        )
     }
 }
 
@@ -317,22 +335,28 @@ private fun RegionCard(region: Region, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column {
-            Box {
-                Image(
-                    painter = painterResource(regionImageRes(region.id)),
-                    contentDescription = stringResource(R.string.region_image_description, region.name),
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(88.dp)
+                    .background(if (isConnected) Night else Color(0xFF334155))
+            ) {
+                Text(
+                    text = "✦",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(172.dp),
-                    contentScale = ContentScale.Crop
+                        .align(Alignment.CenterStart)
+                        .padding(start = 20.dp),
+                    color = Amber,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black
                 )
                 Text(
                     text = stringResource(
                         if (isConnected) R.string.available_badge else R.string.planned_badge
                     ),
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(14.dp)
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 16.dp)
                         .clip(RoundedCornerShape(50))
                         .background(if (isConnected) Amber else Color(0xFFD8E0EE))
                         .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -362,14 +386,14 @@ private fun RegionCard(region: Region, onClick: () -> Unit) {
                         modifier = Modifier.weight(1f)
                     )
                     Characteristic(
-                        label = stringResource(R.string.queues),
-                        value = "1.1–3.2",
+                        label = stringResource(R.string.data_label),
+                        value = stringResource(R.string.data_api),
                         modifier = Modifier.weight(1f)
                     )
                     Characteristic(
-                        label = stringResource(R.string.source),
+                        label = stringResource(R.string.status_label),
                         value = stringResource(
-                            if (isConnected) R.string.power_company else R.string.source_preparing
+                            if (isConnected) R.string.status_connected else R.string.status_planned
                         ),
                         modifier = Modifier.weight(1.35f)
                     )
@@ -390,17 +414,6 @@ private fun Characteristic(label: String, value: String, modifier: Modifier = Mo
         Text(text = label, color = MutedText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
         Text(text = value, color = Ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
     }
-}
-
-@DrawableRes
-internal fun regionImageRes(id: String): Int = when (id) {
-    "if" -> R.drawable.region_if
-    "lviv" -> R.drawable.region_lviv
-    "volyn" -> R.drawable.region_volyn
-    "ternopil" -> R.drawable.region_ternopil
-    "rivne" -> R.drawable.region_rivne
-    "kyiv" -> R.drawable.region_kyiv
-    else -> R.drawable.region_if
 }
 
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)

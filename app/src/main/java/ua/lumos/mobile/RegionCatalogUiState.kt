@@ -2,7 +2,6 @@ package ua.lumos.mobile
 
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
-import ua.lumos.mobile.data.regions as regionCatalog
 
 enum class RegionFilter(val availability: RegionAvailability?) {
     ALL(null),
@@ -13,8 +12,9 @@ enum class RegionFilter(val availability: RegionAvailability?) {
 
 data class RegionCatalogUiState(
     val selectedFilter: RegionFilter = RegionFilter.ALL,
-    val regions: List<Region> = regionCatalog,
-    val sortAlphabetically: Boolean = false
+    val regions: List<Region> = emptyList(),
+    val sortAlphabetically: Boolean = false,
+    val isLoading: Boolean = false
 ) {
     val visibleRegions: List<Region>
         get() {

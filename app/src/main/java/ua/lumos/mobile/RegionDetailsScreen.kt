@@ -1,6 +1,5 @@
 package ua.lumos.mobile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,17 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
-import ua.lumos.mobile.data.regions
 
 private val DetailsInk = Color(0xFF172033)
 private val DetailsNight = Color(0xFF101827)
@@ -115,25 +111,28 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
             Column {
-                Box {
-                    Image(
-                        painter = painterResource(regionImageRes(region.id)),
-                        contentDescription = stringResource(
-                            R.string.region_image_description,
-                            region.name
-                        ),
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(132.dp)
+                        .background(DetailsNight)
+                ) {
+                    Text(
+                        text = "✦",
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(210.dp),
-                        contentScale = ContentScale.Crop
+                            .align(Alignment.CenterStart)
+                            .padding(start = 24.dp),
+                        color = DetailsAmber,
+                        fontSize = 42.sp,
+                        fontWeight = FontWeight.Black
                     )
                     Text(
                         text = stringResource(
                             if (isConnected) R.string.available_badge else R.string.planned_badge
                         ),
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(14.dp)
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 18.dp)
                             .clip(RoundedCornerShape(50))
                             .background(
                                 if (isConnected) DetailsAmber else Color(0xFFD8E0EE)
@@ -155,7 +154,7 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
-                        text = region.description,
+                        text = stringResource(R.string.details_loaded_description),
                         color = DetailsMutedText,
                         fontSize = 15.sp,
                         lineHeight = 23.sp
@@ -165,24 +164,18 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
         }
 
         DetailField(
-            title = stringResource(R.string.details_provider),
-            value = region.provider
+            title = stringResource(R.string.details_api_id),
+            value = region.id
         )
         DetailField(
-            title = stringResource(R.string.details_queues),
-            value = region.supported_queues
-        )
-        DetailField(
-            title = stringResource(R.string.details_update),
-            value = region.update_frequency
-        )
-        DetailField(
-            title = stringResource(R.string.details_notes),
-            value = region.notes
+            title = stringResource(R.string.details_api_status),
+            value = stringResource(
+                if (isConnected) R.string.status_connected else R.string.status_planned
+            )
         )
         DetailField(
             title = stringResource(R.string.details_image_url),
-            value = region.image_url
+            value = region.image_url.ifBlank { stringResource(R.string.not_specified) }
         )
     }
 }
@@ -254,13 +247,4 @@ private fun RegionNotFound(
             Text(stringResource(R.string.back_to_catalog))
         }
     }
-}
-
-@Preview(showBackground = true, widthDp = 390, heightDp = 844)
-@Composable
-private fun RegionDetailsPreview() {
-    RegionDetailsScreen(
-        region = regions.first(),
-        onBackClick = {}
-    )
 }

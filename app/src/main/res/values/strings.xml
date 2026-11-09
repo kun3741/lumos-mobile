@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Люмос</string>
     <string name="catalog_title">Оберіть свій регіон</string>
-    <string name="catalog_subtitle">Фільтруйте регіони за доступністю графіків і оберіть потрібний.</string>
+    <string name="catalog_subtitle">Регіони завантажуються з публічного API Люмос.</string>
     <string name="available_badge">ГРАФІКИ ДОСТУПНІ</string>
     <string name="planned_badge">У РОЗРОБЦІ</string>
     <string name="filter_all">Усі</string>
@@ -11,18 +11,19 @@
     <string name="empty_title">Регіонів не знайдено</string>
     <string name="empty_description">У цій категорії зараз немає регіонів. Оберіть інший варіант.</string>
     <string name="region_code">КОД</string>
-    <string name="queues">6 ЧЕРГ</string>
-    <string name="source">ДЖЕРЕЛО</string>
-    <string name="power_company">Обленерго</string>
-    <string name="source_preparing">Готується</string>
-    <string name="region_image_description">Ілюстрація регіону %1$s</string>
+    <string name="data_label">ДАНІ</string>
+    <string name="data_api">API</string>
+    <string name="status_label">СТАТУС</string>
+    <string name="status_connected">Підключено</string>
+    <string name="status_planned">У розробці</string>
+    <string name="loading_regions">Завантажуємо регіони…</string>
     <string name="details_title">Деталі регіону</string>
     <string name="back_description">Повернутися назад</string>
-    <string name="details_provider">Оператор графіка</string>
-    <string name="details_queues">Підтримувані черги</string>
-    <string name="details_update">Оновлення даних</string>
-    <string name="details_notes">Важливо знати</string>
+    <string name="details_loaded_description">Ці дані отримано безпосередньо з API Люмос. Зображення буде підключено в лабораторній роботі 10.</string>
+    <string name="details_api_id">Ідентифікатор в API</string>
+    <string name="details_api_status">Статус у каталозі</string>
     <string name="details_image_url">Адреса зображення в API</string>
+    <string name="not_specified">Не вказано</string>
     <string name="not_found_title">Регіон не знайдено</string>
     <string name="not_found_description">Об’єкт із таким ідентифікатором відсутній або був видалений.</string>
     <string name="back_to_catalog">Повернутися до каталогу</string>
