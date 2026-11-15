@@ -10,8 +10,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerializationException
+import retrofit2.HttpException
 import ua.lumos.mobile.data.RegionRepository
 import ua.lumos.mobile.data.SettingsRepository
+import java.io.IOException
+import java.net.ConnectException
+import java.net.NoRouteToHostException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 class RegionCatalogViewModel(application: Application) : AndroidViewModel(application) {
     private val settingsRepository = SettingsRepository(application)
@@ -36,21 +43,45 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
         loadRegions()
     }
 
+    fun retry() {
+        loadRegions()
+    }
+
     private fun loadRegions() {
         loadRegionsJob?.cancel()
         loadRegionsJob = viewModelScope.launch {
-            _uiState = _uiState.copy(isLoading = true)
+            _uiState = _uiState.copy(
+                regions = emptyList(),
+                isLoading = true,
+                error = null
+            )
             try {
                 val regions = regionRepository.getRegions()
                 _uiState = _uiState.copy(
                     regions = regions,
-                    isLoading = false
+                    isLoading = false,
+                    error = null
                 )
             } catch (exception: CancellationException) {
                 throw exception
-            } catch (_: Exception) {
-                _uiState = _uiState.copy(isLoading = false)
+            } catch (exception: Exception) {
+                _uiState = _uiState.copy(
+                    regions = emptyList(),
+                    isLoading = false,
+                    error = exception.toRegionLoadError()
+                )
             }
         }
     }
+}
+
+private fun Throwable.toRegionLoadError(): RegionLoadError = when (this) {
+    is HttpException -> RegionLoadError.SERVER
+    is SerializationException -> RegionLoadError.INVALID_RESPONSE
+    is UnknownHostException,
+    is ConnectException,
+    is NoRouteToHostException,
+    is SocketTimeoutException,
+    is IOException -> RegionLoadError.NO_NETWORK
+    else -> RegionLoadError.INVALID_RESPONSE
 }

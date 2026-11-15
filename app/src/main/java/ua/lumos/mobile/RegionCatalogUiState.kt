@@ -10,11 +10,18 @@ enum class RegionFilter(val availability: RegionAvailability?) {
     PAUSED(RegionAvailability.PAUSED)
 }
 
+enum class RegionLoadError {
+    NO_NETWORK,
+    SERVER,
+    INVALID_RESPONSE
+}
+
 data class RegionCatalogUiState(
     val selectedFilter: RegionFilter = RegionFilter.ALL,
     val regions: List<Region> = emptyList(),
     val sortAlphabetically: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = true,
+    val error: RegionLoadError? = null
 ) {
     val visibleRegions: List<Region>
         get() {

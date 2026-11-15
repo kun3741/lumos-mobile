@@ -8,8 +8,18 @@
     <string name="filter_connected">Підключено</string>
     <string name="filter_planned">У розробці</string>
     <string name="filter_paused">Призупинено</string>
-    <string name="empty_title">Регіонів не знайдено</string>
-    <string name="empty_description">У цій категорії зараз немає регіонів. Оберіть інший варіант.</string>
+    <string name="empty_filter_title">Регіонів не знайдено</string>
+    <string name="empty_filter_description">У цій категорії зараз немає регіонів. Оберіть інший варіант.</string>
+    <string name="empty_api_title">Список поки порожній</string>
+    <string name="empty_api_description">Сервер відповів успішно, але не повернув жодного регіону. Оновіть список трохи пізніше.</string>
+    <string name="error_network_title">Немає зв’язку з мережею</string>
+    <string name="error_network_description">Перевірте Wi-Fi або мобільний інтернет і повторіть запит.</string>
+    <string name="error_server_title">Сервер тимчасово недоступний</string>
+    <string name="error_server_description">Люмос отримав помилку від сервера. Спробуйте ще раз трохи пізніше.</string>
+    <string name="error_format_title">Не вдалося прочитати дані</string>
+    <string name="error_format_description">Сервер повернув відповідь у неочікуваному форматі. Спробуйте оновити список.</string>
+    <string name="retry">Спробувати ще</string>
+    <string name="refresh">Оновити список</string>
     <string name="region_code">КОД</string>
     <string name="data_label">ДАНІ</string>
     <string name="data_api">API</string>
@@ -37,4 +47,13 @@
     <string name="current_sort_availability">Поточний порядок: за доступністю</string>
     <string name="sort_status_alphabetical">Порядок: за назвою</string>
     <string name="sort_status_availability">Порядок: за доступністю</string>
+    <string name="notifications_title">Сповіщення про графік</string>
+    <string name="notifications_disabled_description">Дозвольте сповіщення, щоб Люмос міг повідомляти про зміни графіка. Каталог працює і без цього дозволу.</string>
+    <string name="notifications_enabled_description">Дозвіл надано. Перевірте роботу функції тестовим сповіщенням.</string>
+    <string name="enable_notifications">Увімкнути сповіщення</string>
+    <string name="send_test_notification">Надіслати тестове</string>
+    <string name="notification_channel_name">Оновлення графіка</string>
+    <string name="notification_channel_description">Повідомлення про зміни графіків відключень</string>
+    <string name="notification_test_title">Сповіщення Люмос увімкнено</string>
+    <string name="notification_test_text">Тепер застосунок зможе повідомляти про зміни графіка.</string>
 </resources>

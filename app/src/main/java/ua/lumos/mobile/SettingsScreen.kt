@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,7 +40,9 @@ private val SettingsMutedText = Color(0xFF697386)
 @Composable
 fun SettingsScreen(
     sortAlphabetically: Boolean,
+    notificationsEnabled: Boolean,
     onSortAlphabeticallyChange: (Boolean) -> Unit,
+    onNotificationAction: () -> Unit,
     onBackClick: () -> Unit
 ) {
     MaterialTheme {
@@ -139,6 +142,48 @@ fun SettingsScreen(
                     color = SettingsMutedText,
                     fontSize = 14.sp
                 )
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.notifications_title),
+                            color = SettingsInk,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(
+                                if (notificationsEnabled) {
+                                    R.string.notifications_enabled_description
+                                } else {
+                                    R.string.notifications_disabled_description
+                                }
+                            ),
+                            color = SettingsMutedText,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp
+                        )
+                        Button(onClick = onNotificationAction) {
+                            Text(
+                                stringResource(
+                                    if (notificationsEnabled) {
+                                        R.string.send_test_notification
+                                    } else {
+                                        R.string.enable_notifications
+                                    }
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -149,7 +194,9 @@ fun SettingsScreen(
 private fun SettingsScreenPreview() {
     SettingsScreen(
         sortAlphabetically = true,
+        notificationsEnabled = false,
         onSortAlphabeticallyChange = {},
+        onNotificationAction = {},
         onBackClick = {}
     )
 }

@@ -1,6 +1,9 @@
 package ua.lumos.mobile
 
+import android.Manifest
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
@@ -24,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -36,10 +40,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -86,6 +94,7 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
             RegionCatalogScreen(
                 uiState = catalogViewModel.uiState,
                 onFilterSelected = catalogViewModel::onFilterSelected,
+                onRetry = catalogViewModel::retry,
                 onSettingsClick = {
                     navController.navigate(SettingsRoute)
                 },
@@ -97,9 +106,30 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
         composable(SettingsRoute) {
             val viewModel: SettingsViewModel = viewModel()
             val sortAlphabetically by viewModel.sortAlphabetically.collectAsState()
+            val context = LocalContext.current
+            var notificationsEnabled by remember {
+                mutableStateOf(hasNotificationPermission(context))
+            }
+            val notificationPermissionLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { granted ->
+                notificationsEnabled = granted
+                if (granted) showNotificationPermissionConfirmed(context)
+            }
             SettingsScreen(
                 sortAlphabetically = sortAlphabetically,
+                notificationsEnabled = notificationsEnabled,
                 onSortAlphabeticallyChange = viewModel::onSortAlphabeticallyChange,
+                onNotificationAction = {
+                    if (hasNotificationPermission(context)) {
+                        notificationsEnabled = true
+                        showNotificationPermissionConfirmed(context)
+                    } else {
+                        notificationPermissionLauncher.launch(
+                            Manifest.permission.POST_NOTIFICATIONS
+                        )
+                    }
+                },
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -124,6 +154,7 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
 private fun RegionCatalogScreen(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
+    onRetry: () -> Unit,
     onSettingsClick: () -> Unit,
     onItemClick: (String) -> Unit
 ) {
@@ -166,6 +197,7 @@ private fun RegionCatalogScreen(
             RegionCatalog(
                 uiState = uiState,
                 onFilterSelected = onFilterSelected,
+                onRetry = onRetry,
                 onItemClick = onItemClick,
                 modifier = Modifier
                     .fillMaxSize()
@@ -179,6 +211,7 @@ private fun RegionCatalogScreen(
 private fun RegionCatalog(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
+    onRetry: () -> Unit,
     onItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -229,18 +262,20 @@ private fun RegionCatalog(
             )
         }
 
-        if (uiState.isLoading) {
-            item { LoadingRegionsState() }
-        }
-
-        if (!uiState.isLoading && uiState.visibleRegions.isEmpty()) {
-            item { EmptyRegionState() }
-        } else {
-            items(items = uiState.visibleRegions, key = Region::id) { region ->
-                RegionCard(
-                    region = region,
-                    onClick = { onItemClick(region.id) }
-                )
+        when {
+            uiState.isLoading -> item { LoadingRegionsState() }
+            uiState.error != null -> item {
+                RegionErrorState(error = uiState.error, onRetry = onRetry)
+            }
+            uiState.regions.isEmpty() -> item { EmptyApiState(onRetry = onRetry) }
+            uiState.visibleRegions.isEmpty() -> item { EmptyFilterState() }
+            else -> {
+                items(items = uiState.visibleRegions, key = Region::id) { region ->
+                    RegionCard(
+                        region = region,
+                        onClick = { onItemClick(region.id) }
+                    )
+                }
             }
         }
     }
@@ -290,7 +325,55 @@ private fun RegionFilter.titleRes(): Int = when (this) {
 }
 
 @Composable
-private fun EmptyRegionState() {
+private fun RegionErrorState(error: RegionLoadError, onRetry: () -> Unit) {
+    val title = when (error) {
+        RegionLoadError.NO_NETWORK -> R.string.error_network_title
+        RegionLoadError.SERVER -> R.string.error_server_title
+        RegionLoadError.INVALID_RESPONSE -> R.string.error_format_title
+    }
+    val description = when (error) {
+        RegionLoadError.NO_NETWORK -> R.string.error_network_description
+        RegionLoadError.SERVER -> R.string.error_server_description
+        RegionLoadError.INVALID_RESPONSE -> R.string.error_format_description
+    }
+
+    CatalogMessageCard(
+        symbol = "!",
+        title = stringResource(title),
+        description = stringResource(description),
+        actionLabel = stringResource(R.string.retry),
+        onAction = onRetry
+    )
+}
+
+@Composable
+private fun EmptyApiState(onRetry: () -> Unit) {
+    CatalogMessageCard(
+        symbol = "∅",
+        title = stringResource(R.string.empty_api_title),
+        description = stringResource(R.string.empty_api_description),
+        actionLabel = stringResource(R.string.refresh),
+        onAction = onRetry
+    )
+}
+
+@Composable
+private fun EmptyFilterState() {
+    CatalogMessageCard(
+        symbol = "⌕",
+        title = stringResource(R.string.empty_filter_title),
+        description = stringResource(R.string.empty_filter_description)
+    )
+}
+
+@Composable
+private fun CatalogMessageCard(
+    symbol: String,
+    title: String,
+    description: String,
+    actionLabel: String? = null,
+    onAction: (() -> Unit)? = null
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -305,20 +388,28 @@ private fun EmptyRegionState() {
                 .background(ScreenBackground, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text("⌕", color = MutedText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(symbol, color = MutedText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         }
         Text(
-            text = stringResource(R.string.empty_title),
+            text = title,
             color = Ink,
             fontSize = 19.sp,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = stringResource(R.string.empty_description),
+            text = description,
             color = MutedText,
             fontSize = 14.sp,
             lineHeight = 20.sp
         )
+        if (actionLabel != null && onAction != null) {
+            Button(
+                onClick = onAction,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(actionLabel)
+            }
+        }
     }
 }
 
@@ -422,6 +513,7 @@ private fun LumosAppPreview() {
     RegionCatalogScreen(
         uiState = RegionCatalogUiState(),
         onFilterSelected = {},
+        onRetry = {},
         onSettingsClick = {},
         onItemClick = {}
     )
