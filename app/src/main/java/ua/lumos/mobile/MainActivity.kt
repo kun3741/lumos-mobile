@@ -8,7 +8,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,16 +15,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,7 +58,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ua.lumos.mobile.data.Region
-import ua.lumos.mobile.data.RegionAvailability
 
 private val Ink = Color(0xFF172033)
 private val Night = Color(0xFF101827)
@@ -215,12 +211,15 @@ private fun RegionCatalog(
     onItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val listState = rememberLazyListState()
+
     LazyColumn(
         modifier = modifier,
+        state = listState,
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
+        item(key = "catalog_header") {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = stringResource(R.string.catalog_title),
@@ -254,7 +253,7 @@ private fun RegionCatalog(
             }
         }
 
-        item {
+        item(key = "catalog_filters") {
             RegionFilterRow(
                 filters = regionFilters,
                 selectedFilter = uiState.selectedFilter,
@@ -263,15 +262,19 @@ private fun RegionCatalog(
         }
 
         when {
-            uiState.isLoading -> item { LoadingRegionsState() }
-            uiState.error != null -> item {
+            uiState.isLoading -> item(key = "catalog_loading") { LoadingRegionsState() }
+            uiState.error != null -> item(key = "catalog_error_${uiState.error.name}") {
                 RegionErrorState(error = uiState.error, onRetry = onRetry)
             }
-            uiState.regions.isEmpty() -> item { EmptyApiState(onRetry = onRetry) }
-            uiState.visibleRegions.isEmpty() -> item { EmptyFilterState() }
+            uiState.regions.isEmpty() -> item(key = "catalog_empty_api") {
+                EmptyApiState(onRetry = onRetry)
+            }
+            uiState.visibleRegions.isEmpty() -> item(key = "catalog_empty_filter") {
+                EmptyFilterState()
+            }
             else -> {
                 items(items = uiState.visibleRegions, key = Region::id) { region ->
-                    RegionCard(
+                    RegionListItem(
                         region = region,
                         onClick = { onItemClick(region.id) }
                     )
@@ -410,100 +413,6 @@ private fun CatalogMessageCard(
                 Text(actionLabel)
             }
         }
-    }
-}
-
-@Composable
-private fun RegionCard(region: Region, onClick: () -> Unit) {
-    val isConnected = region.availability == RegionAvailability.CONNECTED
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-    ) {
-        Column {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(88.dp)
-                    .background(if (isConnected) Night else Color(0xFF334155))
-            ) {
-                Text(
-                    text = "✦",
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 20.dp),
-                    color = Amber,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Black
-                )
-                Text(
-                    text = stringResource(
-                        if (isConnected) R.string.available_badge else R.string.planned_badge
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 16.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(if (isConnected) Amber else Color(0xFFD8E0EE))
-                        .padding(horizontal = 12.dp, vertical = 7.dp),
-                    color = Night,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-            }
-
-            Column(
-                modifier = Modifier.padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(13.dp)
-            ) {
-                Text(
-                    text = region.name,
-                    color = Ink,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Characteristic(
-                        label = stringResource(R.string.region_code),
-                        value = region.id.uppercase(),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Characteristic(
-                        label = stringResource(R.string.data_label),
-                        value = stringResource(R.string.data_api),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Characteristic(
-                        label = stringResource(R.string.status_label),
-                        value = stringResource(
-                            if (isConnected) R.string.status_connected else R.string.status_planned
-                        ),
-                        modifier = Modifier.weight(1.35f)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Characteristic(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier
-            .background(ScreenBackground, RoundedCornerShape(14.dp))
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(3.dp)
-    ) {
-        Text(text = label, color = MutedText, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        Text(text = value, color = Ink, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

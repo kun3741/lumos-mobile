@@ -7,7 +7,15 @@ import ua.lumos.mobile.network.toDomainOrNull
 class RegionRepository(
     private val api: LumosApiService = LumosApiClient.service
 ) {
-    suspend fun getRegions(): List<Region> = api.getRegions()
-        .regions
-        .mapNotNull { regionDto -> regionDto.toDomainOrNull() }
+    suspend fun getRegions(): List<Region> {
+        val regions = api.getRegions()
+            .regions
+            .mapNotNull { regionDto -> regionDto.toDomainOrNull() }
+
+        check(regions.map(Region::id).distinct().size == regions.size) {
+            "Region ids returned by the API must be unique"
+        }
+
+        return regions
+    }
 }
