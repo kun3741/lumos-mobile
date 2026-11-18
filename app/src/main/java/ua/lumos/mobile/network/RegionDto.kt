@@ -15,3 +15,14 @@ data class RegionDto(
     @SerialName("image_url") val imageUrl: String? = null,
     val availability: String? = null
 )
+
+@Serializable
+data class ScheduleResponseDto(
+    val available: Boolean = false,
+    val days: List<ScheduleDayDto> = emptyList()
+)
+
+@Serializable
+data class ScheduleDayDto(
+    val date: String? = null
+)

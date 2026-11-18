@@ -7,21 +7,33 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
 
@@ -47,25 +59,16 @@ fun RegionListItem(region: Region, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(88.dp)
-                    .background(if (isConnected) ItemNight else Color(0xFF334155))
+                    .height(172.dp)
             ) {
-                Text(
-                    text = "✦",
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 20.dp),
-                    color = ItemAmber,
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Black
-                )
+                RegionCover(region = region)
                 Text(
                     text = stringResource(
                         if (isConnected) R.string.available_badge else R.string.planned_badge
                     ),
                     modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 16.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(14.dp)
                         .clip(RoundedCornerShape(50))
                         .background(if (isConnected) ItemAmber else Color(0xFFD8E0EE))
                         .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -95,20 +98,94 @@ fun RegionListItem(region: Region, onClick: () -> Unit) {
                         modifier = Modifier.weight(1f)
                     )
                     RegionCharacteristic(
-                        label = stringResource(R.string.data_label),
-                        value = stringResource(R.string.data_api),
+                        label = stringResource(R.string.schedule_days_label),
+                        value = region.schedule_days?.toString() ?: "—",
                         modifier = Modifier.weight(1f)
                     )
                     RegionCharacteristic(
-                        label = stringResource(R.string.status_label),
-                        value = stringResource(
-                            if (isConnected) R.string.status_connected else R.string.status_planned
-                        ),
+                        label = stringResource(R.string.today_schedule_label),
+                        value = when (region.available) {
+                            true -> stringResource(R.string.today_schedule_available)
+                            false -> stringResource(R.string.today_schedule_unavailable)
+                            null -> "—"
+                        },
                         modifier = Modifier.weight(1.35f)
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RegionCover(region: Region) {
+    if (region.image_url.isBlank()) {
+        RegionCoverFallback()
+        return
+    }
+
+    var isLoading by remember(region.image_url) { mutableStateOf(true) }
+    var hasError by remember(region.image_url) { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(region.image_url)
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(R.string.region_image_description, region.name),
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            onLoading = {
+                isLoading = true
+                hasError = false
+            },
+            onSuccess = {
+                isLoading = false
+                hasError = false
+            },
+            onError = {
+                isLoading = false
+                hasError = true
+            }
+        )
+        when {
+            hasError -> RegionCoverFallback()
+            isLoading -> RegionCoverLoading()
+        }
+    }
+}
+
+@Composable
+private fun RegionCoverLoading() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ItemNight),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(28.dp),
+            color = ItemAmber,
+            strokeWidth = 3.dp
+        )
+    }
+}
+
+@Composable
+private fun RegionCoverFallback() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ItemNight),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "✦",
+            color = ItemAmber,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Black
+        )
     }
 }
 

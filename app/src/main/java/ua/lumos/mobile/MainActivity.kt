@@ -30,6 +30,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -91,6 +92,7 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
                 uiState = catalogViewModel.uiState,
                 onFilterSelected = catalogViewModel::onFilterSelected,
                 onRetry = catalogViewModel::retry,
+                onRefresh = catalogViewModel::refresh,
                 onSettingsClick = {
                     navController.navigate(SettingsRoute)
                 },
@@ -151,6 +153,7 @@ private fun RegionCatalogScreen(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
     onSettingsClick: () -> Unit,
     onItemClick: (String) -> Unit
 ) {
@@ -194,6 +197,7 @@ private fun RegionCatalogScreen(
                 uiState = uiState,
                 onFilterSelected = onFilterSelected,
                 onRetry = onRetry,
+                onRefresh = onRefresh,
                 onItemClick = onItemClick,
                 modifier = Modifier
                     .fillMaxSize()
@@ -203,81 +207,89 @@ private fun RegionCatalogScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RegionCatalog(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
     onRetry: () -> Unit,
+    onRefresh: () -> Unit,
     onItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
 
-    LazyColumn(
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = onRefresh,
         modifier = modifier,
-        state = listState,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item(key = "catalog_header") {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = stringResource(R.string.catalog_title),
-                    color = Ink,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                Text(
-                    text = stringResource(R.string.catalog_subtitle),
-                    color = MutedText,
-                    fontSize = 15.sp,
-                    lineHeight = 21.sp
-                )
-                Text(
-                    text = stringResource(
-                        if (uiState.sortAlphabetically) {
-                            R.string.sort_status_alphabetical
-                        } else {
-                            R.string.sort_status_availability
-                        }
-                    ),
-                    modifier = Modifier
-                        .padding(top = 6.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(Color.White)
-                        .padding(horizontal = 12.dp, vertical = 7.dp),
-                    color = MutedText,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-
-        item(key = "catalog_filters") {
-            RegionFilterRow(
-                filters = regionFilters,
-                selectedFilter = uiState.selectedFilter,
-                onFilterSelected = onFilterSelected
-            )
-        }
-
-        when {
-            uiState.isLoading -> item(key = "catalog_loading") { LoadingRegionsState() }
-            uiState.error != null -> item(key = "catalog_error_${uiState.error.name}") {
-                RegionErrorState(error = uiState.error, onRetry = onRetry)
-            }
-            uiState.regions.isEmpty() -> item(key = "catalog_empty_api") {
-                EmptyApiState(onRetry = onRetry)
-            }
-            uiState.visibleRegions.isEmpty() -> item(key = "catalog_empty_filter") {
-                EmptyFilterState()
-            }
-            else -> {
-                items(items = uiState.visibleRegions, key = Region::id) { region ->
-                    RegionListItem(
-                        region = region,
-                        onClick = { onItemClick(region.id) }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item(key = "catalog_header") {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = stringResource(R.string.catalog_title),
+                        color = Ink,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold
                     )
+                    Text(
+                        text = stringResource(R.string.catalog_subtitle),
+                        color = MutedText,
+                        fontSize = 15.sp,
+                        lineHeight = 21.sp
+                    )
+                    Text(
+                        text = stringResource(
+                            if (uiState.sortAlphabetically) {
+                                R.string.sort_status_alphabetical
+                            } else {
+                                R.string.sort_status_availability
+                            }
+                        ),
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White)
+                            .padding(horizontal = 12.dp, vertical = 7.dp),
+                        color = MutedText,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            item(key = "catalog_filters") {
+                RegionFilterRow(
+                    filters = regionFilters,
+                    selectedFilter = uiState.selectedFilter,
+                    onFilterSelected = onFilterSelected
+                )
+            }
+
+            when {
+                uiState.isLoading -> item(key = "catalog_loading") { LoadingRegionsState() }
+                uiState.error != null -> item(key = "catalog_error_${uiState.error.name}") {
+                    RegionErrorState(error = uiState.error, onRetry = onRetry)
+                }
+                uiState.regions.isEmpty() -> item(key = "catalog_empty_api") {
+                    EmptyApiState(onRetry = onRetry)
+                }
+                uiState.visibleRegions.isEmpty() -> item(key = "catalog_empty_filter") {
+                    EmptyFilterState()
+                }
+                else -> {
+                    items(items = uiState.visibleRegions, key = Region::id) { region ->
+                        RegionListItem(
+                            region = region,
+                            onClick = { onItemClick(region.id) }
+                        )
+                    }
                 }
             }
         }
@@ -423,6 +435,7 @@ private fun LumosAppPreview() {
         uiState = RegionCatalogUiState(),
         onFilterSelected = {},
         onRetry = {},
+        onRefresh = {},
         onSettingsClick = {},
         onItemClick = {}
     )

@@ -177,6 +177,10 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
             title = stringResource(R.string.details_image_url),
             value = region.image_url.ifBlank { stringResource(R.string.not_specified) }
         )
+        DetailField(
+            title = stringResource(R.string.details_schedule_days),
+            value = region.schedule_days?.toString() ?: stringResource(R.string.not_specified)
+        )
     }
 }
 

@@ -6,8 +6,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.Retrofit
 
 object LumosApiClient {
-    private const val BaseUrl = "https://lumos.foo/"
-
     private val json = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
@@ -15,9 +13,11 @@ object LumosApiClient {
 
     val service: LumosApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BaseUrl)
+            .baseUrl(LumosBaseUrl)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(LumosApiService::class.java)
     }
 }
+
+internal const val LumosBaseUrl = "https://lumos.foo/"

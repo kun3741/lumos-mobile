@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Люмос</string>
     <string name="catalog_title">Оберіть свій регіон</string>
-    <string name="catalog_subtitle">Регіони завантажуються з публічного API Люмос.</string>
+    <string name="catalog_subtitle">Регіони завантажуються з API Люмос. Потягніть список вниз, щоб оновити.</string>
     <string name="available_badge">ГРАФІКИ ДОСТУПНІ</string>
     <string name="planned_badge">У РОЗРОБЦІ</string>
     <string name="filter_all">Усі</string>
@@ -26,13 +26,19 @@
     <string name="status_label">СТАТУС</string>
     <string name="status_connected">Підключено</string>
     <string name="status_planned">У розробці</string>
+    <string name="schedule_days_label">ДНІВ</string>
+    <string name="today_schedule_label">СЬОГОДНІ</string>
+    <string name="today_schedule_available">Є графік</string>
+    <string name="today_schedule_unavailable">Немає</string>
+    <string name="region_image_description">Обкладинка регіону %1$s</string>
     <string name="loading_regions">Завантажуємо регіони…</string>
     <string name="details_title">Деталі регіону</string>
     <string name="back_description">Повернутися назад</string>
-    <string name="details_loaded_description">Ці дані отримано безпосередньо з API Люмос. Зображення буде підключено в лабораторній роботі 10.</string>
+    <string name="details_loaded_description">Ці дані та обкладинку отримано безпосередньо з API Люмос.</string>
     <string name="details_api_id">Ідентифікатор в API</string>
     <string name="details_api_status">Статус у каталозі</string>
     <string name="details_image_url">Адреса зображення в API</string>
+    <string name="details_schedule_days">Завантажено днів графіка</string>
     <string name="not_specified">Не вказано</string>
     <string name="not_found_title">Регіон не знайдено</string>
     <string name="not_found_description">Об’єкт із таким ідентифікатором відсутній або був видалений.</string>

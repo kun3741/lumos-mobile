@@ -47,12 +47,17 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
         loadRegions()
     }
 
-    private fun loadRegions() {
+    fun refresh() {
+        loadRegions(isRefresh = true)
+    }
+
+    private fun loadRegions(isRefresh: Boolean = false) {
         loadRegionsJob?.cancel()
         loadRegionsJob = viewModelScope.launch {
             _uiState = _uiState.copy(
-                regions = emptyList(),
-                isLoading = true,
+                regions = if (isRefresh) _uiState.regions else emptyList(),
+                isLoading = !isRefresh,
+                isRefreshing = isRefresh,
                 error = null
             )
             try {
@@ -60,14 +65,16 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
                 _uiState = _uiState.copy(
                     regions = regions,
                     isLoading = false,
+                    isRefreshing = false,
                     error = null
                 )
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {
                 _uiState = _uiState.copy(
-                    regions = emptyList(),
+                    regions = if (isRefresh) _uiState.regions else emptyList(),
                     isLoading = false,
+                    isRefreshing = false,
                     error = exception.toRegionLoadError()
                 )
             }

@@ -21,6 +21,7 @@ data class RegionCatalogUiState(
     val regions: List<Region> = emptyList(),
     val sortAlphabetically: Boolean = false,
     val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
     val error: RegionLoadError? = null
 ) {
     val visibleRegions: List<Region>
