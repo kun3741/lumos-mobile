@@ -20,6 +20,11 @@
     <string name="error_format_description">Сервер повернув відповідь у неочікуваному форматі. Спробуйте оновити список.</string>
     <string name="retry">Спробувати ще</string>
     <string name="refresh">Оновити список</string>
+    <string name="search_label">Пошук</string>
+    <string name="search_placeholder">Назва або код регіону</string>
+    <string name="search_empty_title">Нічого не знайдено</string>
+    <string name="search_empty_description">За запитом «%1$s» немає регіонів. Змініть текст або очистьте пошук.</string>
+    <string name="clear_search">Очистити пошук</string>
     <string name="region_code">КОД</string>
     <string name="data_label">ДАНІ</string>
     <string name="data_api">API</string>

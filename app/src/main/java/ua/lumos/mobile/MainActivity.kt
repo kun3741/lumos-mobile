@@ -30,6 +30,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +49,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -91,6 +94,8 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
             RegionCatalogScreen(
                 uiState = catalogViewModel.uiState,
                 onFilterSelected = catalogViewModel::onFilterSelected,
+                onSearchQueryChange = catalogViewModel::onSearchQueryChange,
+                onClearSearch = catalogViewModel::clearSearch,
                 onRetry = catalogViewModel::retry,
                 onRefresh = catalogViewModel::refresh,
                 onSettingsClick = {
@@ -152,6 +157,8 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
 private fun RegionCatalogScreen(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onClearSearch: () -> Unit,
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -196,6 +203,8 @@ private fun RegionCatalogScreen(
             RegionCatalog(
                 uiState = uiState,
                 onFilterSelected = onFilterSelected,
+                onSearchQueryChange = onSearchQueryChange,
+                onClearSearch = onClearSearch,
                 onRetry = onRetry,
                 onRefresh = onRefresh,
                 onItemClick = onItemClick,
@@ -212,6 +221,8 @@ private fun RegionCatalogScreen(
 private fun RegionCatalog(
     uiState: RegionCatalogUiState,
     onFilterSelected: (RegionFilter) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
+    onClearSearch: () -> Unit,
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
     onItemClick: (String) -> Unit,
@@ -264,12 +275,22 @@ private fun RegionCatalog(
                 }
             }
 
-            item(key = "catalog_filters") {
-                RegionFilterRow(
-                    filters = regionFilters,
-                    selectedFilter = uiState.selectedFilter,
-                    onFilterSelected = onFilterSelected
+            item(key = "catalog_search") {
+                CatalogSearchField(
+                    query = uiState.searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    onClear = onClearSearch
                 )
+            }
+
+            if (!uiState.isSearchActive) {
+                item(key = "catalog_filters") {
+                    RegionFilterRow(
+                        filters = regionFilters,
+                        selectedFilter = uiState.selectedFilter,
+                        onFilterSelected = onFilterSelected
+                    )
+                }
             }
 
             when {
@@ -279,6 +300,12 @@ private fun RegionCatalog(
                 }
                 uiState.regions.isEmpty() -> item(key = "catalog_empty_api") {
                     EmptyApiState(onRetry = onRetry)
+                }
+                uiState.hasEmptySearchResult -> item(key = "catalog_empty_search") {
+                    EmptySearchState(
+                        query = uiState.appliedSearchQuery,
+                        onClearSearch = onClearSearch
+                    )
                 }
                 uiState.visibleRegions.isEmpty() -> item(key = "catalog_empty_filter") {
                     EmptyFilterState()
@@ -294,6 +321,51 @@ private fun RegionCatalog(
             }
         }
     }
+}
+
+@Composable
+private fun CatalogSearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClear: () -> Unit
+) {
+    val clearSearchDescription = stringResource(R.string.clear_search)
+
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        label = { Text(stringResource(R.string.search_label)) },
+        placeholder = { Text(stringResource(R.string.search_placeholder)) },
+        leadingIcon = {
+            Text(
+                text = "⌕",
+                color = MutedText,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        trailingIcon = if (query.isNotEmpty()) {
+            {
+                IconButton(
+                    onClick = onClear,
+                    modifier = Modifier.semantics {
+                        contentDescription = clearSearchDescription
+                    }
+                ) {
+                    Text(
+                        text = "×",
+                        color = MutedText,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        } else {
+            null
+        }
+    )
 }
 
 @Composable
@@ -382,6 +454,17 @@ private fun EmptyFilterState() {
 }
 
 @Composable
+private fun EmptySearchState(query: String, onClearSearch: () -> Unit) {
+    CatalogMessageCard(
+        symbol = "⌕",
+        title = stringResource(R.string.search_empty_title),
+        description = stringResource(R.string.search_empty_description, query),
+        actionLabel = stringResource(R.string.clear_search),
+        onAction = onClearSearch
+    )
+}
+
+@Composable
 private fun CatalogMessageCard(
     symbol: String,
     title: String,
@@ -434,6 +517,8 @@ private fun LumosAppPreview() {
     RegionCatalogScreen(
         uiState = RegionCatalogUiState(),
         onFilterSelected = {},
+        onSearchQueryChange = {},
+        onClearSearch = {},
         onRetry = {},
         onRefresh = {},
         onSettingsClick = {},

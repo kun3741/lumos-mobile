@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
@@ -24,6 +25,7 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
     private val settingsRepository = SettingsRepository(application)
     private val regionRepository = RegionRepository()
     private var loadRegionsJob: Job? = null
+    private var searchJob: Job? = null
     private var _uiState by mutableStateOf(RegionCatalogUiState())
 
     val uiState: RegionCatalogUiState
@@ -41,6 +43,32 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
     fun onFilterSelected(filter: RegionFilter) {
         _uiState = _uiState.copy(selectedFilter = filter)
         loadRegions()
+    }
+
+    fun onSearchQueryChange(query: String) {
+        searchJob?.cancel()
+        _uiState = _uiState.copy(searchQuery = query)
+
+        val normalizedQuery = query.trim()
+        if (normalizedQuery.isEmpty()) {
+            _uiState = _uiState.copy(appliedSearchQuery = "")
+            return
+        }
+
+        // The catalog API has no search endpoint, so debounce local filtering
+        // without issuing a network request for each typed character.
+        searchJob = viewModelScope.launch {
+            delay(SearchDebounceMillis)
+            _uiState = _uiState.copy(appliedSearchQuery = normalizedQuery)
+        }
+    }
+
+    fun clearSearch() {
+        searchJob?.cancel()
+        _uiState = _uiState.copy(
+            searchQuery = "",
+            appliedSearchQuery = ""
+        )
     }
 
     fun retry() {
@@ -81,6 +109,8 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 }
+
+private const val SearchDebounceMillis = 350L
 
 private fun Throwable.toRegionLoadError(): RegionLoadError = when (this) {
     is HttpException -> RegionLoadError.SERVER
