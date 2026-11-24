@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -44,7 +48,12 @@ private val ItemBackground = Color(0xFFF3F5F8)
 private val ItemMutedText = Color(0xFF697386)
 
 @Composable
-fun RegionListItem(region: Region, onClick: () -> Unit) {
+fun RegionListItem(
+    region: Region,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
+    onClick: () -> Unit
+) {
     val isConnected = region.availability == RegionAvailability.CONNECTED
 
     Card(
@@ -62,6 +71,31 @@ fun RegionListItem(region: Region, onClick: () -> Unit) {
                     .height(172.dp)
             ) {
                 RegionCover(region = region)
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(10.dp)
+                        .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (isFavorite) {
+                                R.drawable.ic_favorite
+                            } else {
+                                R.drawable.ic_favorite_border
+                            }
+                        ),
+                        contentDescription = stringResource(
+                            if (isFavorite) {
+                                R.string.remove_from_favorites
+                            } else {
+                                R.string.add_to_favorites
+                            }
+                        ),
+                        tint = if (isFavorite) Color(0xFFD1495B) else ItemNight
+                    )
+                }
                 Text(
                     text = stringResource(
                         if (isConnected) R.string.available_badge else R.string.planned_badge

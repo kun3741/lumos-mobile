@@ -13,8 +13,6 @@ import ua.lumos.mobile.network.toDomainOrNull
 class RegionRepository(
     private val api: LumosApiService = LumosApiClient.service
 ) {
-    private val scheduleRequestLimiter = Semaphore(MaxConcurrentScheduleRequests)
-
     suspend fun getRegions(): List<Region> {
         val regions = api.getRegions()
             .regions
@@ -51,3 +49,4 @@ class RegionRepository(
 
 private const val CatalogPreviewQueue = "1.1"
 private const val MaxConcurrentScheduleRequests = 3
+private val scheduleRequestLimiter = Semaphore(MaxConcurrentScheduleRequests)

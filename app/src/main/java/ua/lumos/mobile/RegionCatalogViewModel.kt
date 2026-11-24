@@ -15,6 +15,7 @@ import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
 import ua.lumos.mobile.data.RegionRepository
 import ua.lumos.mobile.data.SettingsRepository
+import ua.lumos.mobile.data.FavoritesRepository
 import java.io.IOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
@@ -23,6 +24,7 @@ import java.net.UnknownHostException
 
 class RegionCatalogViewModel(application: Application) : AndroidViewModel(application) {
     private val settingsRepository = SettingsRepository(application)
+    private val favoritesRepository = FavoritesRepository(application)
     private val regionRepository = RegionRepository()
     private var loadRegionsJob: Job? = null
     private var searchJob: Job? = null
@@ -35,6 +37,11 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             settingsRepository.sortAlphabetically.collect { sortAlphabetically ->
                 _uiState = _uiState.copy(sortAlphabetically = sortAlphabetically)
+            }
+        }
+        viewModelScope.launch {
+            favoritesRepository.favoriteIds.collect { favoriteIds ->
+                _uiState = _uiState.copy(favoriteIds = favoriteIds)
             }
         }
         loadRegions()
@@ -69,6 +76,12 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
             searchQuery = "",
             appliedSearchQuery = ""
         )
+    }
+
+    fun toggleFavorite(id: String) {
+        viewModelScope.launch {
+            favoritesRepository.toggleFavorite(id)
+        }
     }
 
     fun retry() {
@@ -112,7 +125,7 @@ class RegionCatalogViewModel(application: Application) : AndroidViewModel(applic
 
 private const val SearchDebounceMillis = 350L
 
-private fun Throwable.toRegionLoadError(): RegionLoadError = when (this) {
+internal fun Throwable.toRegionLoadError(): RegionLoadError = when (this) {
     is HttpException -> RegionLoadError.SERVER
     is SerializationException -> RegionLoadError.INVALID_RESPONSE
     is UnknownHostException,

@@ -19,6 +19,7 @@ enum class RegionLoadError {
 data class RegionCatalogUiState(
     val selectedFilter: RegionFilter = RegionFilter.ALL,
     val regions: List<Region> = emptyList(),
+    val favoriteIds: Set<String> = emptySet(),
     val searchQuery: String = "",
     val appliedSearchQuery: String = "",
     val sortAlphabetically: Boolean = false,

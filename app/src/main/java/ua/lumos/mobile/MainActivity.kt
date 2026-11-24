@@ -71,6 +71,7 @@ private val MutedText = Color(0xFF697386)
 
 private val regionFilters = RegionFilter.entries
 private const val CatalogRoute = "catalog"
+private const val FavoritesRoute = "favorites"
 private const val SettingsRoute = "settings"
 private const val RegionIdArgument = "regionId"
 private const val DetailsRoute = "details/{$RegionIdArgument}"
@@ -83,8 +84,18 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
+private fun LumosApp(
+    catalogViewModel: RegionCatalogViewModel = viewModel(),
+    favoritesViewModel: FavoritesViewModel = viewModel()
+) {
     val navController = rememberNavController()
+    val navigateToMain: (String) -> Unit = { route ->
+        navController.navigate(route) {
+            popUpTo(CatalogRoute) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -98,12 +109,27 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
                 onClearSearch = catalogViewModel::clearSearch,
                 onRetry = catalogViewModel::retry,
                 onRefresh = catalogViewModel::refresh,
+                onFavoriteClick = catalogViewModel::toggleFavorite,
                 onSettingsClick = {
                     navController.navigate(SettingsRoute)
                 },
+                onCatalogClick = { navigateToMain(CatalogRoute) },
+                onFavoritesClick = { navigateToMain(FavoritesRoute) },
                 onItemClick = { regionId ->
                     navController.navigate("details/$regionId")
                 }
+            )
+        }
+        composable(FavoritesRoute) {
+            FavoritesScreen(
+                uiState = favoritesViewModel.uiState,
+                onCatalogClick = { navigateToMain(CatalogRoute) },
+                onFavoritesClick = { navigateToMain(FavoritesRoute) },
+                onItemClick = { regionId ->
+                    navController.navigate("details/$regionId")
+                },
+                onFavoriteClick = favoritesViewModel::toggleFavorite,
+                onRetry = favoritesViewModel::retry
             )
         }
         composable(SettingsRoute) {
@@ -144,8 +170,13 @@ private fun LumosApp(catalogViewModel: RegionCatalogViewModel = viewModel()) {
         ) { backStackEntry ->
             val regionId = backStackEntry.arguments?.getString(RegionIdArgument)
             val region = catalogViewModel.uiState.regions.firstOrNull { it.id == regionId }
+                ?: favoritesViewModel.uiState.regions.firstOrNull { it.id == regionId }
             RegionDetailsScreen(
                 region = region,
+                isFavorite = regionId in catalogViewModel.uiState.favoriteIds,
+                onFavoriteClick = {
+                    regionId?.let(catalogViewModel::toggleFavorite)
+                },
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -161,7 +192,10 @@ private fun RegionCatalogScreen(
     onClearSearch: () -> Unit,
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
+    onFavoriteClick: (String) -> Unit,
     onSettingsClick: () -> Unit,
+    onCatalogClick: () -> Unit,
+    onFavoritesClick: () -> Unit,
     onItemClick: (String) -> Unit
 ) {
     MaterialTheme {
@@ -188,6 +222,15 @@ private fun RegionCatalogScreen(
                         }
                     },
                     actions = {
+                        IconButton(onClick = onFavoritesClick) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_favorite_border),
+                                contentDescription = stringResource(
+                                    R.string.open_favorites_description
+                                ),
+                                tint = Color.White
+                            )
+                        }
                         IconButton(onClick = onSettingsClick) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_settings),
@@ -198,6 +241,13 @@ private fun RegionCatalogScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Night)
                 )
+            },
+            bottomBar = {
+                LumosBottomNavigation(
+                    favoritesSelected = false,
+                    onCatalogClick = onCatalogClick,
+                    onFavoritesClick = onFavoritesClick
+                )
             }
         ) { innerPadding ->
             RegionCatalog(
@@ -207,6 +257,7 @@ private fun RegionCatalogScreen(
                 onClearSearch = onClearSearch,
                 onRetry = onRetry,
                 onRefresh = onRefresh,
+                onFavoriteClick = onFavoriteClick,
                 onItemClick = onItemClick,
                 modifier = Modifier
                     .fillMaxSize()
@@ -225,6 +276,7 @@ private fun RegionCatalog(
     onClearSearch: () -> Unit,
     onRetry: () -> Unit,
     onRefresh: () -> Unit,
+    onFavoriteClick: (String) -> Unit,
     onItemClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -314,6 +366,8 @@ private fun RegionCatalog(
                     items(items = uiState.visibleRegions, key = Region::id) { region ->
                         RegionListItem(
                             region = region,
+                            isFavorite = region.id in uiState.favoriteIds,
+                            onFavoriteClick = { onFavoriteClick(region.id) },
                             onClick = { onItemClick(region.id) }
                         )
                     }
@@ -521,7 +575,10 @@ private fun LumosAppPreview() {
         onClearSearch = {},
         onRetry = {},
         onRefresh = {},
+        onFavoriteClick = {},
         onSettingsClick = {},
+        onCatalogClick = {},
+        onFavoritesClick = {},
         onItemClick = {}
     )
 }

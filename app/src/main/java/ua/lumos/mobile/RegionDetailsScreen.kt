@@ -48,6 +48,8 @@ private val DetailsMutedText = Color(0xFF697386)
 @Composable
 fun RegionDetailsScreen(
     region: Region?,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     MaterialTheme {
@@ -69,6 +71,33 @@ fun RegionDetailsScreen(
                                 contentDescription = stringResource(R.string.back_description),
                                 tint = Color.White
                             )
+                        }
+                    },
+                    actions = {
+                        if (region != null) {
+                            IconButton(onClick = onFavoriteClick) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (isFavorite) {
+                                            R.drawable.ic_favorite
+                                        } else {
+                                            R.drawable.ic_favorite_border
+                                        }
+                                    ),
+                                    contentDescription = stringResource(
+                                        if (isFavorite) {
+                                            R.string.remove_from_favorites
+                                        } else {
+                                            R.string.add_to_favorites
+                                        }
+                                    ),
+                                    tint = if (isFavorite) {
+                                        Color(0xFFFFC857)
+                                    } else {
+                                        Color.White
+                                    }
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = DetailsNight)
