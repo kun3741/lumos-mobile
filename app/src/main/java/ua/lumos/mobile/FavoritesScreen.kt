@@ -1,5 +1,6 @@
 package ua.lumos.mobile
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,19 +25,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ua.lumos.mobile.data.Region
-
-private val FavoritesInk = Color(0xFF172033)
-private val FavoritesNight = Color(0xFF101827)
-private val FavoritesAmber = Color(0xFFFFC857)
-private val FavoritesBackground = Color(0xFFF3F5F8)
-private val FavoritesMutedText = Color(0xFF697386)
+import ua.lumos.mobile.ui.theme.LumosTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,19 +42,18 @@ fun FavoritesScreen(
     onFavoriteClick: (String) -> Unit,
     onRetry: () -> Unit
 ) {
-    MaterialTheme {
-        Scaffold(
-            containerColor = FavoritesBackground,
+    Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
                             text = stringResource(R.string.favorites_title),
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = FavoritesNight)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 )
             },
             bottomBar = {
@@ -100,15 +93,13 @@ fun FavoritesScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Text(
                                 text = stringResource(R.string.favorites_heading),
-                                color = FavoritesInk,
-                                fontSize = 25.sp,
-                                fontWeight = FontWeight.ExtraBold
+                                color = MaterialTheme.colorScheme.onBackground,
+                                style = MaterialTheme.typography.headlineMedium
                             )
                             Text(
                                 text = stringResource(R.string.favorites_subtitle),
-                                color = FavoritesMutedText,
-                                fontSize = 14.sp,
-                                lineHeight = 20.sp
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -122,7 +113,6 @@ fun FavoritesScreen(
                     }
                 }
             }
-        }
     }
 }
 
@@ -133,11 +123,11 @@ private fun FavoritesLoading(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator(color = FavoritesAmber)
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.secondary)
         Text(
             text = stringResource(R.string.loading_favorites),
             modifier = Modifier.padding(top = 12.dp),
-            color = FavoritesMutedText
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -190,17 +180,16 @@ private fun FavoritesMessage(
         Box(
             modifier = Modifier
                 .size(72.dp)
-                .background(Color.White, CircleShape),
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(symbol, color = FavoritesMutedText, fontSize = 34.sp)
+            Text(symbol, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.displaySmall)
         }
         Text(
             text = title,
             modifier = Modifier.padding(top = 18.dp),
-            color = FavoritesInk,
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center
         )
         Text(
@@ -208,11 +197,10 @@ private fun FavoritesMessage(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 8.dp)
-                .background(Color.White, RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
                 .padding(18.dp),
-            color = FavoritesMutedText,
-            fontSize = 14.sp,
-            lineHeight = 21.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
         if (actionLabel != null && onAction != null) {
@@ -223,5 +211,29 @@ private fun FavoritesMessage(
                 Text(actionLabel)
             }
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun EmptyFavoritesDarkPreview() {
+    LumosTheme(darkTheme = true) {
+        FavoritesScreen(
+            uiState = FavoriteRegionsUiState(isLoading = false),
+            onCatalogClick = {}, onFavoritesClick = {}, onItemClick = {},
+            onFavoriteClick = {}, onRetry = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun FavoritesErrorDarkPreview() {
+    LumosTheme(darkTheme = true) {
+        FavoritesScreen(
+            uiState = FavoriteRegionsUiState(isLoading = false, error = RegionLoadError.NO_NETWORK),
+            onCatalogClick = {}, onFavoritesClick = {}, onItemClick = {},
+            onFavoriteClick = {}, onRetry = {}
+        )
     }
 }

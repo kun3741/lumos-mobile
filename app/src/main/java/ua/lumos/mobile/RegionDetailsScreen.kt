@@ -1,5 +1,6 @@
 package ua.lumos.mobile
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,21 +29,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
-
-private val DetailsInk = Color(0xFF172033)
-private val DetailsNight = Color(0xFF101827)
-private val DetailsAmber = Color(0xFFFFC857)
-private val DetailsBackground = Color(0xFFF3F5F8)
-private val DetailsMutedText = Color(0xFF697386)
+import ua.lumos.mobile.ui.theme.LumosTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,16 +46,15 @@ fun RegionDetailsScreen(
     onFavoriteClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    MaterialTheme {
-        Scaffold(
-            containerColor = DetailsBackground,
+    Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
                             text = stringResource(R.string.details_title),
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     },
                     navigationIcon = {
@@ -69,7 +62,7 @@ fun RegionDetailsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = stringResource(R.string.back_description),
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     },
@@ -92,15 +85,15 @@ fun RegionDetailsScreen(
                                         }
                                     ),
                                     tint = if (isFavorite) {
-                                        Color(0xFFFFC857)
+                                        MaterialTheme.colorScheme.secondary
                                     } else {
-                                        Color.White
+                                        MaterialTheme.colorScheme.onPrimaryContainer
                                     }
                                 )
                             }
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = DetailsNight)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 )
             }
         ) { innerPadding ->
@@ -119,7 +112,6 @@ fun RegionDetailsScreen(
                         .padding(innerPadding)
                 )
             }
-        }
     }
 }
 
@@ -135,8 +127,8 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
         ) {
             Column {
@@ -144,16 +136,15 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(132.dp)
-                        .background(DetailsNight)
+                        .background(MaterialTheme.colorScheme.primaryContainer)
                 ) {
                     Text(
                         text = "✦",
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .padding(start = 24.dp),
-                        color = DetailsAmber,
-                        fontSize = 42.sp,
-                        fontWeight = FontWeight.Black
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.displaySmall
                     )
                     Text(
                         text = stringResource(
@@ -164,12 +155,11 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
                             .padding(end = 18.dp)
                             .clip(RoundedCornerShape(50))
                             .background(
-                                if (isConnected) DetailsAmber else Color(0xFFD8E0EE)
+                                if (isConnected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
                             )
                             .padding(horizontal = 12.dp, vertical = 7.dp),
-                        color = DetailsNight,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        color = if (isConnected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
                 Column(
@@ -178,15 +168,13 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
                 ) {
                     Text(
                         text = region.name,
-                        color = DetailsInk,
-                        fontSize = 27.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
                         text = stringResource(R.string.details_loaded_description),
-                        color = DetailsMutedText,
-                        fontSize = 15.sp,
-                        lineHeight = 23.sp
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }
@@ -217,8 +205,8 @@ private fun RegionDetailsContent(region: Region, modifier: Modifier = Modifier) 
 private fun DetailField(title: String, value: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -226,15 +214,13 @@ private fun DetailField(title: String, value: String) {
         ) {
             Text(
                 text = title,
-                color = DetailsMutedText,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium
             )
             Text(
                 text = value,
-                color = DetailsInk,
-                fontSize = 16.sp,
-                lineHeight = 23.sp
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
@@ -253,24 +239,22 @@ private fun RegionNotFound(
         Box(
             modifier = Modifier
                 .size(72.dp)
-                .background(Color.White, CircleShape),
+                .background(MaterialTheme.colorScheme.surface, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text("?", color = DetailsMutedText, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+            Text("?", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.displaySmall)
         }
         Text(
             text = stringResource(R.string.not_found_title),
             modifier = Modifier.padding(top = 18.dp),
-            color = DetailsInk,
-            fontSize = 23.sp,
-            fontWeight = FontWeight.Bold
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = stringResource(R.string.not_found_description),
             modifier = Modifier.padding(top = 8.dp),
-            color = DetailsMutedText,
-            fontSize = 15.sp,
-            lineHeight = 22.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
         Button(
@@ -279,5 +263,18 @@ private fun RegionNotFound(
         ) {
             Text(stringResource(R.string.back_to_catalog))
         }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RegionDetailsDarkPreview() {
+    LumosTheme(darkTheme = true) {
+        RegionDetailsScreen(
+            region = Region("lviv", "Львівщина", "", RegionAvailability.CONNECTED, true, 7),
+            isFavorite = true,
+            onFavoriteClick = {},
+            onBackClick = {}
+        )
     }
 }

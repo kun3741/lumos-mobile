@@ -1,5 +1,6 @@
 package ua.lumos.mobile
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,18 +24,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-private val SettingsInk = Color(0xFF172033)
-private val SettingsNight = Color(0xFF101827)
-private val SettingsBackground = Color(0xFFF3F5F8)
-private val SettingsMutedText = Color(0xFF697386)
+import ua.lumos.mobile.ui.theme.LumosTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,16 +39,15 @@ fun SettingsScreen(
     onNotificationAction: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    MaterialTheme {
-        Scaffold(
-            containerColor = SettingsBackground,
+    Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
                             text = stringResource(R.string.settings_title),
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            style = MaterialTheme.typography.titleLarge
                         )
                     },
                     navigationIcon = {
@@ -62,11 +55,11 @@ fun SettingsScreen(
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_back),
                                 contentDescription = stringResource(R.string.back_description),
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = SettingsNight)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 )
             }
         ) { innerPadding ->
@@ -80,22 +73,20 @@ fun SettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = stringResource(R.string.settings_heading),
-                        color = SettingsInk,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
                         text = stringResource(R.string.settings_subtitle),
-                        color = SettingsMutedText,
-                        fontSize = 15.sp,
-                        lineHeight = 21.sp
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = MaterialTheme.shapes.large,
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
@@ -109,15 +100,13 @@ fun SettingsScreen(
                         ) {
                             Text(
                                 text = stringResource(R.string.sort_alphabetically_title),
-                                color = SettingsInk,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.Bold
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.titleMedium
                             )
                             Text(
                                 text = stringResource(R.string.sort_alphabetically_description),
-                                color = SettingsMutedText,
-                                fontSize = 13.sp,
-                                lineHeight = 19.sp
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                         Switch(
@@ -137,16 +126,16 @@ fun SettingsScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
                         .padding(16.dp),
-                    color = SettingsMutedText,
-                    fontSize = 14.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium
                 )
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(22.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = MaterialTheme.shapes.large,
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
@@ -155,9 +144,8 @@ fun SettingsScreen(
                     ) {
                         Text(
                             text = stringResource(R.string.notifications_title),
-                            color = SettingsInk,
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.titleMedium
                         )
                         Text(
                             text = stringResource(
@@ -167,9 +155,8 @@ fun SettingsScreen(
                                     R.string.notifications_disabled_description
                                 }
                             ),
-                            color = SettingsMutedText,
-                            fontSize = 13.sp,
-                            lineHeight = 19.sp
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                         Button(onClick = onNotificationAction) {
                             Text(
@@ -185,18 +172,17 @@ fun SettingsScreen(
                     }
                 }
             }
-        }
     }
 }
 
-@Preview(showBackground = true, widthDp = 390, heightDp = 844)
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SettingsScreenPreview() {
-    SettingsScreen(
+    LumosTheme(darkTheme = true) { SettingsScreen(
         sortAlphabetically = true,
         notificationsEnabled = false,
         onSortAlphabeticallyChange = {},
         onNotificationAction = {},
         onBackClick = {}
-    )
+    ) }
 }

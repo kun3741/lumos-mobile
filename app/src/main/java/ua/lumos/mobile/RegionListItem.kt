@@ -27,25 +27,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import ua.lumos.mobile.data.Region
 import ua.lumos.mobile.data.RegionAvailability
-
-private val ItemInk = Color(0xFF172033)
-private val ItemNight = Color(0xFF101827)
-private val ItemAmber = Color(0xFFFFC857)
-private val ItemBackground = Color(0xFFF3F5F8)
-private val ItemMutedText = Color(0xFF697386)
 
 @Composable
 fun RegionListItem(
@@ -60,8 +52,8 @@ fun RegionListItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column {
@@ -76,7 +68,7 @@ fun RegionListItem(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(10.dp)
-                        .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f), CircleShape)
                 ) {
                     Icon(
                         painter = painterResource(
@@ -93,7 +85,7 @@ fun RegionListItem(
                                 R.string.add_to_favorites
                             }
                         ),
-                        tint = if (isFavorite) Color(0xFFD1495B) else ItemNight
+                        tint = if (isFavorite) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Text(
@@ -104,11 +96,10 @@ fun RegionListItem(
                         .align(Alignment.TopEnd)
                         .padding(14.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(if (isConnected) ItemAmber else Color(0xFFD8E0EE))
+                        .background(if (isConnected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
                         .padding(horizontal = 12.dp, vertical = 7.dp),
-                    color = ItemNight,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.ExtraBold
+                    color = if (isConnected) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
 
@@ -118,9 +109,8 @@ fun RegionListItem(
             ) {
                 Text(
                     text = region.name,
-                    color = ItemInk,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.Bold
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleLarge
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -195,12 +185,12 @@ private fun RegionCoverLoading() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ItemNight),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
             modifier = Modifier.size(28.dp),
-            color = ItemAmber,
+            color = MaterialTheme.colorScheme.secondary,
             strokeWidth = 3.dp
         )
     }
@@ -211,14 +201,13 @@ private fun RegionCoverFallback() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(ItemNight),
+            .background(MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "✦",
-            color = ItemAmber,
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Black
+            color = MaterialTheme.colorScheme.secondary,
+            style = MaterialTheme.typography.displaySmall
         )
     }
 }
@@ -231,21 +220,19 @@ private fun RegionCharacteristic(
 ) {
     Column(
         modifier = modifier
-            .background(ItemBackground, RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small)
             .padding(horizontal = 10.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         Text(
             text = label,
-            color = ItemMutedText,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelSmall
         )
         Text(
             text = value,
-            color = ItemInk,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.labelMedium
         )
     }
 }

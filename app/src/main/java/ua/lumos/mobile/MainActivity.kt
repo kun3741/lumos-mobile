@@ -1,7 +1,9 @@
 package ua.lumos.mobile
 
 import android.Manifest
+import android.content.res.Configuration
 import android.os.Bundle
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
@@ -45,16 +47,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -62,12 +61,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import ua.lumos.mobile.data.Region
-
-private val Ink = Color(0xFF172033)
-private val Night = Color(0xFF101827)
-private val Amber = Color(0xFFFFC857)
-private val ScreenBackground = Color(0xFFF3F5F8)
-private val MutedText = Color(0xFF697386)
+import ua.lumos.mobile.ui.theme.LumosTheme
 
 private val regionFilters = RegionFilter.entries
 private const val CatalogRoute = "catalog"
@@ -78,8 +72,9 @@ private const val DetailsRoute = "details/{$RegionIdArgument}"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
-        setContent { LumosApp() }
+        setContent { LumosTheme { LumosApp() } }
     }
 }
 
@@ -198,9 +193,8 @@ private fun RegionCatalogScreen(
     onFavoritesClick: () -> Unit,
     onItemClick: (String) -> Unit
 ) {
-    MaterialTheme {
-        Scaffold(
-            containerColor = ScreenBackground,
+    Scaffold(
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
@@ -208,16 +202,16 @@ private fun RegionCatalogScreen(
                             Box(
                                 modifier = Modifier
                                     .size(34.dp)
-                                    .background(Amber, CircleShape),
+                                    .background(MaterialTheme.colorScheme.secondary, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("✦", color = Night, fontWeight = FontWeight.Black)
+                                Text("✦", color = MaterialTheme.colorScheme.onSecondary, style = MaterialTheme.typography.titleMedium)
                             }
                             Text(
                                 text = stringResource(R.string.app_name),
                                 modifier = Modifier.padding(start = 10.dp),
-                                color = Color.White,
-                                fontWeight = FontWeight.ExtraBold
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.titleLarge
                             )
                         }
                     },
@@ -228,18 +222,18 @@ private fun RegionCatalogScreen(
                                 contentDescription = stringResource(
                                     R.string.open_favorites_description
                                 ),
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                         IconButton(onClick = onSettingsClick) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_settings),
                                 contentDescription = stringResource(R.string.settings_description),
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Night)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
                 )
             },
             bottomBar = {
@@ -263,7 +257,6 @@ private fun RegionCatalogScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             )
-        }
     }
 }
 
@@ -297,15 +290,13 @@ private fun RegionCatalog(
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = stringResource(R.string.catalog_title),
-                        color = Ink,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Text(
                         text = stringResource(R.string.catalog_subtitle),
-                        color = MutedText,
-                        fontSize = 15.sp,
-                        lineHeight = 21.sp
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         text = stringResource(
@@ -318,11 +309,10 @@ private fun RegionCatalog(
                         modifier = Modifier
                             .padding(top = 6.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(Color.White)
+                            .background(MaterialTheme.colorScheme.surface)
                             .padding(horizontal = 12.dp, vertical = 7.dp),
-                        color = MutedText,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
             }
@@ -395,9 +385,8 @@ private fun CatalogSearchField(
         leadingIcon = {
             Text(
                 text = "⌕",
-                color = MutedText,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.headlineSmall
             )
         },
         trailingIcon = if (query.isNotEmpty()) {
@@ -410,9 +399,8 @@ private fun CatalogSearchField(
                 ) {
                     Text(
                         text = "×",
-                        color = MutedText,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.headlineSmall
                     )
                 }
             }
@@ -431,11 +419,11 @@ private fun LoadingRegionsState() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        CircularProgressIndicator(color = Color(0xFFB7791F))
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         Text(
             text = stringResource(R.string.loading_regions),
-            color = MutedText,
-            fontSize = 14.sp
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -529,7 +517,7 @@ private fun CatalogMessageCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.large)
             .padding(horizontal = 24.dp, vertical = 36.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -537,22 +525,20 @@ private fun CatalogMessageCard(
         Box(
             modifier = Modifier
                 .size(54.dp)
-                .background(ScreenBackground, CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(symbol, color = MutedText, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+            Text(symbol, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.headlineMedium)
         }
         Text(
             text = title,
-            color = Ink,
-            fontSize = 19.sp,
-            fontWeight = FontWeight.Bold
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleLarge
         )
         Text(
             text = description,
-            color = MutedText,
-            fontSize = 14.sp,
-            lineHeight = 20.sp
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium
         )
         if (actionLabel != null && onAction != null) {
             Button(
@@ -568,7 +554,7 @@ private fun CatalogMessageCard(
 @Preview(showBackground = true, widthDp = 390, heightDp = 844)
 @Composable
 private fun LumosAppPreview() {
-    RegionCatalogScreen(
+    LumosTheme { RegionCatalogScreen(
         uiState = RegionCatalogUiState(),
         onFilterSelected = {},
         onSearchQueryChange = {},
@@ -580,5 +566,35 @@ private fun LumosAppPreview() {
         onCatalogClick = {},
         onFavoritesClick = {},
         onItemClick = {}
-    )
+    ) }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CatalogErrorDarkPreview() {
+    LumosTheme(darkTheme = true) {
+        RegionCatalogScreen(
+            uiState = RegionCatalogUiState(isLoading = false, error = RegionLoadError.NO_NETWORK),
+            onFilterSelected = {}, onSearchQueryChange = {}, onClearSearch = {},
+            onRetry = {}, onRefresh = {}, onFavoriteClick = {}, onSettingsClick = {},
+            onCatalogClick = {}, onFavoritesClick = {}, onItemClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, widthDp = 390, heightDp = 844, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun EmptySearchDarkPreview() {
+    LumosTheme(darkTheme = true) {
+        RegionCatalogScreen(
+            uiState = RegionCatalogUiState(
+                searchQuery = "Київ", appliedSearchQuery = "Київ",
+                regions = listOf(Region("lviv", "Львівщина", "", ua.lumos.mobile.data.RegionAvailability.CONNECTED, true, 7)),
+                isLoading = false
+            ),
+            onFilterSelected = {}, onSearchQueryChange = {}, onClearSearch = {},
+            onRetry = {}, onRefresh = {}, onFavoriteClick = {}, onSettingsClick = {},
+            onCatalogClick = {}, onFavoritesClick = {}, onItemClick = {}
+        )
+    }
 }
